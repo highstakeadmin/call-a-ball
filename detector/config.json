@@ -1,0 +1,6 @@
+{
+  '//': 'Target: {x, y, r}, where the center is at (x, y) and the approximate radius is r'
+	'targets': [
+	  {100.2, 300.4, 67.5}
+	]
+}
