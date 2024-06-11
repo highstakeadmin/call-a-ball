@@ -1,4 +1,6 @@
 import argparse
+import sys
+import cv2 as cv
 
 
 def main():
@@ -18,6 +20,16 @@ def main():
     args = parser.parse_args()
 
     print(args.image_file)
+
+    # Read image file (OpenCV)
+    # [image].png -> img: open_cv
+    img = cv.imread(cv.samples.findFile(args.image_file))
+
+    # Checking the image for read
+    if img is None:
+        sys.exit("Could not read the image.")
+
+    print(type(img))
 
 
 if __name__ == "__main__":
