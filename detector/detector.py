@@ -1,4 +1,8 @@
-def find_candidates(img):
+import cv2 as cv
+import numpy as np
+
+
+def find_candidates(img: np.ndarray):
     pass
 
 
