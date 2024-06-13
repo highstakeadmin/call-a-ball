@@ -1,6 +1,9 @@
 {
-  '//': 'Target: {x, y, r}, where the center is at (x, y) and the approximate radius is r'
-	'targets': [
-	  {100.2, 300.4, 67.5}
-	]
+  "\\": "int values for the canny algorithm",
+  "canny": {
+    "threshold1": 125,
+    "threshold2": 96
+  },
+  
+  "\\": ""
 }
