@@ -5,5 +5,17 @@
     "threshold2": 96
   },
   
-  "\\": ""
+  "\\": "",
+  "gaussian_blur": {
+    "ksize": 5
+  },
+  "hough_circles": {
+    "dp": 1,
+    "min_dist": 600,
+    "param1": 30,
+    "param2": 17,
+    "min_radius": 150,
+    "max_radius": 230
+    
+  }
 }
