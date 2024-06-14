@@ -1,6 +1,6 @@
 """
 detector.py
-
+This library of functions is for finding candidates and working the config
 
 Author: GreeChel
 """
@@ -76,11 +76,25 @@ def find_candidates(img: np.ndarray):
     return circles
 
 
-def show_candidates(img, cands):
+def show_candidates(img: np.ndarray, cands: np.ndarray):
     """
     shows the picture where find_candidates was found
     """
-    pass
+
+    # Cloned img
+    clone_img = img.copy()
+
+    # Around parameters cands
+    cands = np.uint16(np.around(cands))
+
+    # Tracing circles
+    for (x, y, r) in cands[0, :]:
+        cv.circle(clone_img, (x, y), r, (0, 255, 0), 3)
+        cv.circle(clone_img, (x, y), 3, (0, 255, 255), 5)
+
+    # Show image with candidates
+    cv.imshow("detected_circles", clone_img)
+    cv.waitKey()
 
 
 def find_targets(img, cands):
@@ -102,4 +116,5 @@ def show_contours(pmap):
 # Entry point for quick tests
 if __name__ == "__main__":
     img = cv.imread("detector/images/img1.jpg")
-    print(find_candidates(img))
+    cands = find_candidates(img)
+    show_candidates(img, cands)
