@@ -35,25 +35,23 @@ def read_config():
     return data
 
 
-def find_candidates(img: np.ndarray):
+def find_candidates(img: np.ndarray, config: dict):
     """
     A function that outputs a list of 3 taps - [x, y, r]
     """
-    #
-    config_data = read_config()
 
     # Convert image to GRAY
     gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
     # Smuthing GRAY image with Gaussian blurring
-    gauss_data = config_data["gaussian_blur"]
+    gauss_data = config["gaussian_blur"]
     gray_img = cv.GaussianBlur(gray_img,
                                ksize=(gauss_data["ksize"],
                                       gauss_data["ksize"]),
                                sigmaX=0)
 
     # Use algorithm Canny for selection (converting) faces
-    canny_data = config_data["canny"]
+    canny_data = config["canny"]
     canny = cv.Canny(
         gray_img,
         threshold1=canny_data["threshold1"],
@@ -61,7 +59,7 @@ def find_candidates(img: np.ndarray):
     )
 
     #
-    hough_data = config_data["hough_circles"]
+    hough_data = config["hough_circles"]
     circles = cv.HoughCircles(
         canny,
         method=cv.HOUGH_GRADIENT,
@@ -116,5 +114,10 @@ def show_contours(pmap):
 # Entry point for quick tests
 if __name__ == "__main__":
     img = cv.imread("detector/images/img1.jpg")
-    cands = find_candidates(img)
+    config_data = read_config()
+
+    cands = find_candidates(img, config_data["find_candidates"])
     show_candidates(img, cands)
+
+    # data = read_config()
+    # print(type(data["find_candidates"]))

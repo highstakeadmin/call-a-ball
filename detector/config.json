@@ -1,21 +1,22 @@
 {
-  "\\": "int values for the canny algorithm",
-  "canny": {
-    "threshold1": 125,
-    "threshold2": 96
-  },
-  
-  "\\": "",
-  "gaussian_blur": {
-    "ksize": 5
-  },
-  "hough_circles": {
-    "dp": 1,
-    "min_dist": 600,
-    "param1": 30,
-    "param2": 17,
-    "min_radius": 150,
-    "max_radius": 230
+  "find_candidates": {
+    "\\": "int values for the canny algorithm",
+    "canny": {
+      "threshold1": 125,
+      "threshold2": 96
+    },
     
+    "\\": "",
+    "gaussian_blur": {
+      "ksize": 5
+    },
+    "hough_circles": {
+      "dp": 1,
+      "min_dist": 600,
+      "param1": 30,
+      "param2": 17,
+      "min_radius": 150,
+      "max_radius": 230
+    }
   }
 }
