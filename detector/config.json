@@ -5,6 +5,10 @@
       "threshold1": 125,
       "threshold2": 96
     },
+    "dilate": {
+      "kernel": 8,
+      "iterations": 3
+    },
     
     "\\": "",
     "gaussian_blur": {

@@ -12,13 +12,8 @@ Updated by Alexey Pak on 16.06.2024
 
 import cv2 as cv
 import numpy as np
-<<<<<<< HEAD
-import json, os
-=======
 import json
-import os
 import math
->>>>>>> b3dbfba (Update detector.py for find_candidates())
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 
@@ -49,12 +44,6 @@ def read_json(file_name):
     #   }
     """
 
-#    # Get the directory of the current script
-#    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-#    # Construct the path to the config.json file
-#    config_path = os.path.join(script_dir, "config.json")
-
     # Read config.json -> data
     data = {}
     with open(file_name, 'r', encoding="utf-8") as f:
@@ -62,37 +51,6 @@ def read_json(file_name):
 
     # Output data
     return data
-
-
-def write_config(config: dict, key: str):
-    """
-    Function for writing optimaze parameters to config file in config.json
-    """
-    pass
-
-
-def optimaze_gaussian_blur(img: np.ndarray, config: dict):
-    """
-    Adjust the configuration parameters of cv.GaussianBlur() function
-    by triggers
-    """
-    pass
-
-
-def optimaze_canny(img: np.ndarray, config: dict):
-    """
-    Adjust the configuration parameters of cv.Canny() function
-    by triggers
-    """
-    pass
-
-
-def optimize_hough_circles(img: np.ndarray, config: dict):
-    """
-    Adjust the configuration parameters of cv.HoughCircles() function
-    by triggers
-    """
-    pass
 
 
 def find_candidates(img: np.ndarray, config: dict):
@@ -137,7 +95,7 @@ def find_candidates(img: np.ndarray, config: dict):
     gray_img = cv.GaussianBlur(
         gray_img,
         ksize=(gauss_data["ksize"],
-        gauss_data["ksize"]),
+               gauss_data["ksize"]),
         sigmaX=0)
 
     # Use the Canny algorithm to extract contours.
@@ -147,10 +105,18 @@ def find_candidates(img: np.ndarray, config: dict):
         threshold1=canny_data["threshold1"],
         threshold2=canny_data["threshold2"])
 
+    # Expansion of the faces after Canny processing
+    dilate_data = config["dilate"]
+    kernel = np.ones((  # kernel radius for dilate
+        dilate_data["kernel"], dilate_data["kernel"]
+    ))
+    dil = cv.dilate(canny, kernel=kernel, iterations=dilate_data["iterations"])
+    dil = cv.bitwise_not(dil)  # invert color
+
     # Use Hough transform to find circular contours.
     hough_data = config["hough_circles"]
     circles = cv.HoughCircles(
-        canny,
+        dil,
         method=cv.HOUGH_GRADIENT,
         dp=hough_data["dp"],
         minDist=hough_data["min_dist"],
@@ -176,32 +142,49 @@ def show_candidates(img: np.ndarray, cands):
     cands = np.uint16(np.around(cands))
 
     # Draw the circles.
-    for (x, y, r) in cands:
+    for (x, y, r) in cands[0, :]:
         cv.circle(clone_img, (x, y), r, (0, 255, 0), 3)
         cv.circle(clone_img, (x, y), 3, (0, 255, 255), 5)
 
     # Show image with candidates
+    cv.namedWindow("detected_circles", cv.WINDOW_NORMAL)
     cv.imshow("detected_circles", clone_img)
     cv.waitKey()
+    cv.destroyAllWindows()
 
 
 def find_targets(img: np.ndarray, cands: np.ndarray):
     """
-    return targs = [(x, y, r, H, w), ...]
+    Return targs as a list of tuples containing
+    the following elements for each candidate:
 
-    h (Hue): Hue represents the color type and is one of the components of the
-    HSV color model. The value of Hue typically ranges from 0 to 360 degrees
-    and indicates the dominant color (e.g., red, green, blue, etc.).
+    targs = (x, y, r, A, mu, sig, A_err, mu_err, sig_err)
 
-    w (width): Width in this context describes the spread or distribution
-    of Hue values after fitting a Gaussian distribution to the histogram of
-    the Hue channel. This can be, for example, the standard deviation of the
-    Gaussian curve that was fitted to the histogram.
+    Where:
+    - (x, y): Coordinates of the candidate circle center.
+    - r: Radius of the candidate circle.
+    - A: Amplitude parameter of the fitted Gaussian function,
+    representing the peak value.
+    - mu: Mean parameter of the fitted Gaussian function,
+    representing the center or peak position.
+    - sig: Standard deviation parameter of the fitted Gaussian function,
+    representing the spread or width.
+    - A_err: Standard error of the amplitude parameter A,
+    indicating the uncertainty in its estimation.
+    - mu_err: Standard error of the mean parameter mu,
+    indicating the uncertainty in its estimation.
+    - sig_err: Standard error of the standard deviation parameter sig,
+    indicating the uncertainty in its estimation.
+
+    These parameters provide a comprehensive description of
+    each candidate's characteristics after fitting
+    a Gaussian function to the histogram data derived
+    from the candidate region in the HSV image.
     """
 
-    # Create an targs: dict to write a list of
-    # x, y, r, H, w to it for each candidate
-    targs = {}
+    # Create an targs: list of
+    # x, y, r, A, mu, sig, A_err, mu_err, sig_err to it for each candidate
+    targs = []
 
     # Clone img
     hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
@@ -228,8 +211,6 @@ def find_targets(img: np.ndarray, cands: np.ndarray):
     #     candidate_2: (x, y, r, i=1)
     #     ...
     for i, (x, y, r) in enumerate(cands[0, :]):
-        # debug
-        print(i, x, y, r)
 
         # Cropping the candidate
         hsv_cand = hsv_mask_img[y-r:y+r, x-r:x+r]
@@ -252,35 +233,86 @@ def find_targets(img: np.ndarray, cands: np.ndarray):
         x_max = x_data[(y_data == y_max)][0]
 
         # Histogram fitting using the Gaussian function
-        # popt, pcov = curve_fit(gauss_f, x_data, y_data,
-        #                        p0=[y_max, x_max, math.sqrt(180)])
+        popt, pcov = curve_fit(gauss_f, x_data, y_data,
+                               p0=[y_max, x_max, math.sqrt(180)])
 
         # Import optimaze parameters from the object popt
-        # A_opt, mu_opt, sig_opt = popt
+        A_opt, mu_opt, sig_opt = popt
+        # Calculate standard errors of the parameters
+        A_err, mu_err, sig_err = np.sqrt(np.diag(pcov))
 
         #
-        # x_model = np.linspace(min(x_data), max(x_data), 1000)
-        # y_model = gauss_f(x_model, A_opt, mu_opt, sig_opt)
+        targs.append((x, y, r, A_opt, mu_opt, sig_opt, A_err, mu_err, sig_err))
 
-        # debug
-        plt.scatter(x_data, y_data)
-        # plt.plot(x_model, y_model)
+    return targs
+
+
+def show_targets(img: np.ndarray, targs):
+    """A function displaying a table from:
+
+    [HSV_image, histogram]
+
+    Show:
+    HSV_image - the image in the HSV channel
+    histogram - a histogram combining the number of pixels
+    per channel H (blue points) and a fitted Gaussian function (blue line)
+
+    Input:
+    targs = (x, y, r, A, mu, sig, A_err, mu_err, sig_err)
+    img - original image (BGR)
+    """
+    # Clone img
+    hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+
+    # Creating mask.
+    # The size of the mask is taken from the with and height parameters
+    # of the image
+    mask = np.zeros(hsv_img.shape, np.uint8)
+
+    # Make a cicle
+    for i, (x, y, r, A_opt, mu_opt, sig_opt, A_err, mu_err, sig_err) \
+            in enumerate(targs):
+
+        # Print all parameters with candidates number for debug
+        print(f"Index: {i}, x: {x}, y: {y}, r: {r}, "
+              f"A_opt: {A_opt}, mu_opt: {mu_opt}, sig_opt: {sig_opt}, "
+              f"A_err: {A_err}, mu_err: {mu_err}, sig_err: {sig_err}")
+
+        # Create mask for candidate
+        cv.circle(mask, (x, y), r, (255, 255, 255), -1)
+        hsv_mask_img = cv.bitwise_and(hsv_img, mask)
+        hsv_cand = hsv_mask_img[y-r:y+r, x-r:x+r]
+
+        # H channel output from HSV
+        h = hsv_cand[:, :, 0]
+
+        # Make histogram from channel Hue
+        hist_h = cv.calcHist([h], [0], None, [180], [0, 179])
+
+        x_stuff = np.arange(180)
+        y_stuff = hist_h.flatten()
+
+        # Filter x y hist data: delete point 0
+        x_data = x_stuff[(x_stuff > 0)]
+        y_data = y_stuff[(x_stuff > 0)]
+
+        x_model = np.linspace(min(x_data), max(x_data), 1000)
+        y_model = gauss_f(x_model, A_opt, mu_opt, sig_opt)
+
+        # Make table [hsv_cands: image, histogram]
+        _, axs = plt.subplots(1, 2)
+
+        # Show HSV image
+        axs[0].imshow(hsv_cand)
+        axs[0].set_title("HSV_Image")
+
+        # Show histogram
+        axs[1].scatter(x_data, y_data)
+        axs[1].plot(x_model, y_model, "red")
+        axs[1].set_title("Hue_Histogram")
+        axs[1].set_xlabel("hue_color")
+        axs[1].set_ylabel("#pixels")
         plt.show()
-        cv.imshow(f"hsv_cands {i+1}", hsv_cand)
-        cv.waitKey()
-        print(f"xy_max: {x_max, y_max}")
-
-    # debug
-    cv.imshow("mask", mask)
-    cv.waitKey()
-    cv.imshow("hsv_img", hsv_img)
-    cv.waitKey()
-    cv.imshow("hsv_mask_img", hsv_mask_img)
-    cv.waitKey()
-
-
-def show_targets(img, targs):
-    pass
 
 
 def find_contours(img, targ):
@@ -293,17 +325,12 @@ def show_contours(pmap):
 
 # Entry point for quick tests
 if __name__ == "__main__":
-    config = read_json("config.json")
-    img = cv.imread("detector/images/img1.jpg")
-<<<<<<< HEAD
+    config = read_json("detector/config.json")
+    img = cv.imread("detector/images/desk1.jpeg")
 
     cands = find_candidates(img, config["find_candidates"])
     show_candidates(img, cands)
-=======
-    config_data = read_config()
-    #
-    cands = find_candidates(img, config_data["find_candidates"])
-    # show_candidates(img, cands)
->>>>>>> b3dbfba (Update detector.py for find_candidates())
 
-    find_targets(img, cands)
+    targets = find_targets(img, cands)
+
+    show_targets(img, targets)
