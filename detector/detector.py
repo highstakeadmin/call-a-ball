@@ -263,6 +263,7 @@ def show_targets(img: np.ndarray, targs):
     """
     # Clone img
     hsv_img = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+    rgb_img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
 
     # Creating mask.
     # The size of the mask is taken from the with and height parameters
@@ -278,10 +279,14 @@ def show_targets(img: np.ndarray, targs):
               f"A_opt: {A_opt}, mu_opt: {mu_opt}, sig_opt: {sig_opt}, "
               f"A_err: {A_err}, mu_err: {mu_err}, sig_err: {sig_err}")
 
-        # Create mask for candidate
+        # Create mask for HSV candidate
         cv.circle(mask, (x, y), r, (255, 255, 255), -1)
         hsv_mask_img = cv.bitwise_and(hsv_img, mask)
         hsv_cand = hsv_mask_img[y-r:y+r, x-r:x+r]
+
+        # Create mask for RGB candidate
+        rgb_mask_img = cv.bitwise_and(rgb_img, mask)
+        rgb_cand = rgb_mask_img[y-r:y+r, x-r:x+r]
 
         # H channel output from HSV
         h = hsv_cand[:, :, 0]
@@ -303,7 +308,7 @@ def show_targets(img: np.ndarray, targs):
         _, axs = plt.subplots(1, 2)
 
         # Show HSV image
-        axs[0].imshow(hsv_cand)
+        axs[0].imshow(rgb_cand)
         axs[0].set_title("HSV_Image")
 
         # Show histogram
@@ -315,11 +320,11 @@ def show_targets(img: np.ndarray, targs):
         plt.show()
 
 
-def find_contours(img, targ):
+def find_contour(img, targ):
     pass
 
 
-def show_contours(pmap):
+def show_contour(pmap):
     pass
 
 
