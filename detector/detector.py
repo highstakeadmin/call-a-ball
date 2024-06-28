@@ -153,7 +153,20 @@ def show_candidates(img: np.ndarray, cands):
     cv.destroyAllWindows()
 
 
-def find_targets(img: np.ndarray, cands: np.ndarray):
+def filter_target(A_opt, mu_opt, sig_opt,
+                  A_err, mu_err, sig_err,
+                  conf: dict):
+    """A function for filtering candidates by parameters from config.json
+
+    After passing a number of conditions, it outputs either True
+    or False for one candidate
+    """
+    if sig_opt < 0 or A_err > conf["A_err"] or mu_err > conf["mu_err"]:
+        return True
+    return False
+
+
+def find_targets(img: np.ndarray, cands: np.ndarray, config: dict):
     """
     Return targs as a list of tuples containing
     the following elements for each candidate:
@@ -241,7 +254,16 @@ def find_targets(img: np.ndarray, cands: np.ndarray):
         # Calculate standard errors of the parameters
         A_err, mu_err, sig_err = np.sqrt(np.diag(pcov))
 
-        #
+        # Filter target
+        filter_config = config["filter_target"]
+        if filter_target(
+            A_opt, mu_opt, sig_opt,
+            A_err, mu_err, sig_err,
+            conf=filter_config
+        ):
+            continue
+
+        # Make at array
         targs.append((x, y, r, A_opt, mu_opt, sig_opt, A_err, mu_err, sig_err))
 
     return targs
@@ -336,6 +358,6 @@ if __name__ == "__main__":
     cands = find_candidates(img, config["find_candidates"])
     show_candidates(img, cands)
 
-    targets = find_targets(img, cands)
+    targets = find_targets(img, cands, config["find_targets"])
 
     show_targets(img, targets)

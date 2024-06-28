@@ -22,5 +22,15 @@
       "min_radius": 150,
       "max_radius": 230
     }
+  },
+  "find_targets": {
+    "filter_target": {
+      "A_opt": 0,
+      "mu_opt": 0,
+      "sig_opt": 0,
+      "A_err": 1150,
+      "mu_err": 0.5,
+      "sig_err": 0
+    }
   }
 }
