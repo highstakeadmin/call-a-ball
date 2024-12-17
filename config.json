@@ -1,0 +1,47 @@
+{
+  "//": "Which detector to use: 'YOLO' or 'HOUGH'",
+  "Detector": "YOLO",
+
+  "YOLO": {
+    "//": "Model will be downloaded if necessary",
+    "model": "yolo11n-seg.pt",
+    "//": "Pre-defined class of objects: balls",
+    "classId": 32,  "//": "sports ball",
+    "//": "Threshold on detection confidence",
+    "minConfidence": 0.1, "//": "0.0 to 1.0"
+  },
+
+  "GaussianBlur": {
+    "ksize": 5,
+    "sigmaX": 0
+  },
+
+  "Canny": {
+    "threshold1": 125,
+    "threshold2": 96
+  },
+
+  "Dilate": {
+    "kernel": 8,
+    "iterations": 3
+  },
+
+  "HoughCircles": {
+    "dp": 1,
+    "minDist": 600,
+    "param1": 30,
+    "param2": 17,
+    "minRadius": 50,
+    "maxRadius": 200
+  },
+
+  "FindContours": {
+    "points": 30,
+    "minRelScale": 0.75,
+    "maxRelScale": 1.25
+  },
+
+  "ShowTargets": {
+    "points": 20
+  }
+}
