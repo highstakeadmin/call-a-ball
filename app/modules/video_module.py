@@ -144,6 +144,7 @@ class VideoModule:
         self.box_controls.setEnabled(enabled)
         self.video_player.set_enabled_controls(enabled)
         self.btn_process_video.setEnabled(enabled)
+        self.btn_detect_ball.setEnabled(enabled)
 
     def update_progress(self, progress: float):
         self.progress_bar.setValue(int(progress * 100))
