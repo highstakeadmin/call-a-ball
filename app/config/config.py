@@ -76,7 +76,7 @@ class Config(object):
 
     @property
     def k_size(self):
-        return {"value": self.__conf["GaussianBlur"]["ksize"], "min": 1, "max": 20}
+        return {"value": self.__conf["GaussianBlur"]["ksize"], "min": 1, "max": 19}
 
     @k_size.setter
     def k_size(self, value):

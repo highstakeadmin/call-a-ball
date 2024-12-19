@@ -44,10 +44,16 @@ class LabeledSliderWidget(QWidget):
         self.input = self.findChild(QSpinBox)
         self.slider = self.findChild(QSlider)
 
-        self.slider.valueChanged.connect(self.on_change.emit)
+        self.slider.valueChanged.connect(self.set_value)
+        self.input.valueChanged.connect(self.set_value)
 
-        self.slider.valueChanged.connect(self.input.setValue)
-        self.input.valueChanged.connect(self.slider.setValue)
+    def _prepare_value(self, raw_value):
+        logger.debug(f"_prepare_value: {raw_value}")
+        if self.property("valueParity") == "odd":
+            value = raw_value - 1 if raw_value % 2 == 0 else raw_value
+        else:
+            value = raw_value
+        return value
 
     def set_max(self, value: int):
         logger.debug(f"set_max: {value}")
@@ -59,10 +65,12 @@ class LabeledSliderWidget(QWidget):
         self.slider.setMinimum(value)
         self.input.setMinimum(value)
 
-    def set_value(self, value: int):
+    def set_value(self, raw_value: int):
+        value = self._prepare_value(raw_value)
         logger.debug(f"set_value: {value}")
         self.slider.setValue(value)
         self.input.setValue(value)
+        self.on_change.emit(value)
 
     def get_value(self):
         logger.debug(f"get_value")
